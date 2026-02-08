@@ -39,3 +39,28 @@ services:
     volumes:
       - ./unique/index5.html:/usr/share/nginx/html/index.html
 
+  web7:
+    image: my-nginx-container
+    ports:
+      - "8086:80"
+
+  web8:
+    image: my-nginx-container
+    ports:
+      - "8087:80"
+
+  web9:
+    image: my-nginx-container
+    ports:
+      - "8088:80"
+
+  web10:
+    image: my-nginx-container
+    ports:
+      - "8089:80"
+
+  web11:
+    image: my-nginx-container
+    ports:
+      - "8090:80"
+

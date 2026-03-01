@@ -1,0 +1,8 @@
+*.o
+loadbalancer_sim
+*.exe
+*.out
+log.txt
+*.log
+html/
+latex/

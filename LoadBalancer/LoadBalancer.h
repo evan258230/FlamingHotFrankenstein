@@ -5,6 +5,7 @@
 #include "WebServer.h"
 #include <vector>
 #include <string>
+#include <fstream>
 
 
 class LoadBalancer {
@@ -17,10 +18,11 @@ private:
 public:
     LoadBalancer(int serversCount);
     int queueSize();
-    void addRequest(Request r);
+    void addRequest(Request r, std::ofstream& logFile);
     void cycleStep();
-    void balance(int currentTime);
+    void balance(int currentTime, std::ofstream& logFile);
     void adjustServers();
+    void setBlockedIPRange(std::string startIP, std::string endIP);
     void status();
     bool blocked(std::string ip);
 };

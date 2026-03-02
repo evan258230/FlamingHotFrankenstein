@@ -1,3 +1,8 @@
+/**
+ * @file Request.h
+ * @brief Header file for the Request class.
+ */
+
 #ifndef REQUEST_H
 #define REQUEST_H
 #include <string>
@@ -8,13 +13,13 @@
  */
 class Request {
 public:
-    std::string ipIn;
-    std::string ipOut;
-    int time;
-    char jobType; // 'P' for Processing, 'S' for Streaming
+    std::string ipIn;  ///< The origin IP address.
+    std::string ipOut; ///< The destination IP address.
+    int time;          ///< Time required to process the request (in clock cycles).
+    char jobType;      ///< 'P' for Processing, 'S' for Streaming.
 
     /**
-     * @brief Default constructor for Request.
+     * @brief Default constructor for Request. Initializes with empty strings and 0 time.
      */
     Request();
 
@@ -28,4 +33,4 @@ public:
     Request(std::string in, std::string out, int t, char type);
 };
 
-#endif 
+#endif

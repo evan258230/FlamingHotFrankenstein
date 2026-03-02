@@ -1,3 +1,8 @@
+/**
+ * @file RequestQueue.h
+ * @brief Header file for the RequestQueue class.
+ */
+
 #ifndef REQUESTQUEUE_H
 #define REQUESTQUEUE_H
 
@@ -10,7 +15,7 @@
  */
 class RequestQueue {
 private:
-    std::queue<Request> requestQueue;
+    std::queue<Request> requestQueue; ///< Standard library queue holding Request objects.
 
 public:
     /**
@@ -21,13 +26,13 @@ public:
 
     /**
      * @brief Removes and returns the request at the front of the queue.
-     * @return The next Request object.
+     * @return The next Request object. Returns an empty Request if the queue is empty.
      */
     Request pop();
 
     /**
      * @brief Checks if the queue is currently empty.
-     * @return True if empty, false otherwise.
+     * @return True if the queue has no items, false otherwise.
      */
     bool isEmpty();
 
@@ -38,4 +43,4 @@ public:
     int size();
 };
 
-#endif 
+#endif

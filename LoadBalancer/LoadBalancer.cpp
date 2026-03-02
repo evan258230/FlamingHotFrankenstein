@@ -1,6 +1,15 @@
+/**
+ * @file LoadBalancer.cpp
+ * @brief Implementation file for the LoadBalancer class.
+ */
+
 #include "LoadBalancer.h"
 #include <iostream>
 
+/**
+ * @brief Initializes the LoadBalancer with a specified number of servers.
+ * @param serversCount Number of initial WebServer instances to create.
+ */
 LoadBalancer::LoadBalancer(int serversCount) {
     blockedIPStart = ""; 
     blockedIPEnd = "";
@@ -10,10 +19,19 @@ LoadBalancer::LoadBalancer(int serversCount) {
     }
 }
 
+/**
+ * @brief Returns the size of the request queue.
+ * @return Integer size of the queue.
+ */
 int LoadBalancer::queueSize() {
     return requestQueue.size();
 }
 
+/**
+ * @brief Adds a request to the queue unless blocked by the firewall.
+ * @param r The Request to evaluate.
+ * @param logFile Output stream for firewall logging.
+ */
 void LoadBalancer::addRequest(Request r, std::ofstream& logFile) {
     if (!blocked(r.ipIn)) {
         requestQueue.push(r);
@@ -23,12 +41,21 @@ void LoadBalancer::addRequest(Request r, std::ofstream& logFile) {
         logFile << "[FIREWALL] Blocked malicious request from IP: " << r.ipIn << "\n";
     }
 }
+
+/**
+ * @brief Ticks all active web servers by one clock cycle.
+ */
 void LoadBalancer::cycleStep() {
     for (size_t i = 0; i < webServers.size(); i++) {
         webServers[i].tick();
     }
 }
 
+/**
+ * @brief Pulls waiting requests from the queue and assigns them to idle servers.
+ * @param currentTime The current clock cycle.
+ * @param logFile Output stream for routing logs.
+ */
 void LoadBalancer::balance(int currentTime, std::ofstream& logFile) {
     for (size_t i = 0; i < webServers.size(); i++) {
         if (!webServers[i].busy() && !requestQueue.isEmpty()) {
@@ -40,11 +67,14 @@ void LoadBalancer::balance(int currentTime, std::ofstream& logFile) {
                                  " -> Server [" + std::to_string(i) + "]\n";
             
             logFile << logMsg;
-            
         }
     }
 }
 
+/**
+ * @brief Dynamically adjusts the number of servers based on queue size thresholds.
+ * @param logFile Output stream for scaling event logs.
+ */
 void LoadBalancer::adjustServers(std::ofstream& logFile) {
     int currentQueueSize = requestQueue.size();
     int currentServers = webServers.size();
@@ -63,6 +93,9 @@ void LoadBalancer::adjustServers(std::ofstream& logFile) {
     }
 }
 
+/**
+ * @brief Outputs the current status of the load balancer to the console.
+ */
 void LoadBalancer::status() {
     int currentServers = webServers.size();
     int busyServers = 0;
@@ -78,11 +111,21 @@ void LoadBalancer::status() {
               << " (Active: " << busyServers << ", Idle: " << (currentServers - busyServers) << ")\n";
 }
 
+/**
+ * @brief Updates the IP string boundaries for the firewall.
+ * @param startIP The lower bound IP address.
+ * @param endIP The upper bound IP address.
+ */
 void LoadBalancer::setBlockedIPRange(std::string startIP, std::string endIP) {
     blockedIPStart = startIP;
     blockedIPEnd = endIP;
 }
 
+/**
+ * @brief Evaluates whether an IP address falls within the firewall's blocked range.
+ * @param ip The IP address to test.
+ * @return True if blocked, false if permitted.
+ */
 bool LoadBalancer::blocked(std::string ip) {
     if (blockedIPStart.empty() || blockedIPEnd.empty()) {
         return false;
@@ -93,4 +136,3 @@ bool LoadBalancer::blocked(std::string ip) {
     
     return false;
 }
-

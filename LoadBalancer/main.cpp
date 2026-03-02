@@ -1,3 +1,10 @@
+/**
+ * @file main.cpp
+ * @brief The main driver file for the Flaming Hot Frankenstein Corp. Load Balancer Simulation.
+ * * Sets up configuration settings, implements dual load balancers via a switch, generates network traffic,
+ * handles dynamic server allocation, and writes comprehensive metrics to a log file.
+ */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -7,6 +14,10 @@
 #include "LoadBalancer.h"
 #include "Request.h"
 
+/**
+ * @brief Helper function that generates a randomized IPv4 address string.
+ * @return A string formatted as "X.X.X.X".
+ */
 std::string generateRandomIP() {
     return std::to_string(rand() % 256) + "." +
            std::to_string(rand() % 256) + "." +
@@ -14,6 +25,11 @@ std::string generateRandomIP() {
            std::to_string(rand() % 256);
 }
 
+/**
+ * @brief Generates a random job request.
+ * @param maxProcessTime The maximum possible time complexity for the generated request.
+ * @return A randomized Request object.
+ */
 Request generateRandomRequest(int maxProcessTime) {
     std::string ipIn = generateRandomIP();
     std::string ipOut = generateRandomIP();
@@ -22,6 +38,10 @@ Request generateRandomRequest(int maxProcessTime) {
     return Request(ipIn, ipOut, time, type);
 }
 
+/**
+ * @brief Main execution function.
+ * @return Exit status code.
+ */
 int main() {
     srand(time(0));
     

@@ -18,11 +18,11 @@ void LoadBalancer::addRequest(Request r, std::ofstream& logFile) {
     if (!blocked(r.ipIn)) {
         requestQueue.push(r);
     } else {
+        rejectedRequests++; 
         std::cout << "\033[1;31m[FIREWALL]\033[0m Blocked malicious request from IP: " << r.ipIn << "\n";
         logFile << "[FIREWALL] Blocked malicious request from IP: " << r.ipIn << "\n";
     }
 }
-
 void LoadBalancer::cycleStep() {
     for (size_t i = 0; i < webServers.size(); i++) {
         webServers[i].tick();
@@ -45,21 +45,21 @@ void LoadBalancer::balance(int currentTime, std::ofstream& logFile) {
     }
 }
 
-void LoadBalancer::adjustServers() {
+void LoadBalancer::adjustServers(std::ofstream& logFile) {
     int currentQueueSize = requestQueue.size();
     int currentServers = webServers.size();
     
-    if (currentServers == 0) {
-        return;
-    }
+    if (currentServers == 0) { return; }
     
-    if (currentQueueSize > currentServers * 80) {
+    if (currentQueueSize > currentServers * 80) { //if above * 80, add one server
         webServers.push_back(WebServer());
         std::cout << "\033[1;33m[SCALE UP]\033[0m Added a server. Total servers: " << webServers.size() << "\n";
+        logFile << "[SCALE UP] Added a server. Total servers: " << webServers.size() << "\n";
     } 
-    else if (currentQueueSize < currentServers * 50 && currentServers > 1) {
+    else if (currentQueueSize < currentServers * 50 && currentServers > 1) { //if below * 50, remove 1 server
         webServers.pop_back(); 
         std::cout << "\033[1;36m[SCALE DOWN]\033[0m Removed a server. Total servers: " << webServers.size() << "\n";
+        logFile << "[SCALE DOWN] Removed a server. Total servers: " << webServers.size() << "\n";
     }
 }
 

@@ -65,21 +65,42 @@ int main() {
     logFile << "=========================================================\n";
     logFile << "  Flaming Hot Frankenstein Corp. - Simulation Log        \n";
     logFile << "=========================================================\n";
-    logFile << "Configuration: Servers=" << numServers << ", RunTime=" << runTime 
+    logFile << "Configuration: Total Servers=" << numServers << ", RunTime=" << runTime 
             << ", TrafficChance=" << newRequestChance << "%\n\n";
 
-    LoadBalancer lb(numServers);
-    
+    //switch between processing servers and streaming P and S
+    int processingServers = numServers / 2;
+    int streamingServers = numServers - processingServers; 
 
-    //setting up the firewall based on cofig file
+    LoadBalancer lbProcessing(processingServers);
+    LoadBalancer lbStreaming(streamingServers);
+
+    std::cout << "[SWITCH] Splitting traffic into Processing (" << processingServers 
+              << " servers) and Streaming (" << streamingServers << " servers) clusters.\n";
+    logFile << "[SWITCH] Dual Load Balancers Activated.\n";
+
+   //set firewall for both load balancers
     if (blockStart > blockEnd) {
         std::swap(blockStart, blockEnd);
     }
-    lb.setBlockedIPRange(blockStart, blockEnd);
+    lbProcessing.setBlockedIPRange(blockStart, blockEnd);
+    lbStreaming.setBlockedIPRange(blockStart, blockEnd);
 
     int initialQueueSize = numServers * 100;
+    std::cout << "Starting Total Queue Size: " << initialQueueSize << "\n"; 
+    std::cout << "Task Time Range: 1 to " << maxProcessTime << " clock cycles\n"; 
+    
+    logFile << "Starting Total Queue Size: " << initialQueueSize << "\n";
+    logFile << "Task Time Range: 1 to " << maxProcessTime << " cycles\n";
+
     for (int i = 0; i < initialQueueSize; i++) {
-        lb.addRequest(generateRandomRequest(maxProcessTime), logFile);
+        Request newReq = generateRandomRequest(maxProcessTime);
+        
+        if (newReq.jobType == 'P') {
+            lbProcessing.addRequest(newReq, logFile);
+        } else {
+            lbStreaming.addRequest(newReq, logFile);
+        }
     }
 
     logFile << "[SYSTEM] Booting up simulation with " << initialQueueSize << " initial requests...\n";
@@ -92,33 +113,58 @@ int main() {
         
         //simulating random traffic chance
         if (rand() % 100 < newRequestChance) { 
-            lb.addRequest(generateRandomRequest(maxProcessTime), logFile);
+            Request newReq = generateRandomRequest(maxProcessTime);
+            
+            if (newReq.jobType == 'P') {
+                lbProcessing.addRequest(newReq, logFile);
+            } else {
+                lbStreaming.addRequest(newReq, logFile);
+            }
             totalRequestsReceived++;
         }
 
-        lb.balance(currentTime, logFile);
-        lb.cycleStep();
+        lbProcessing.balance(currentTime, logFile);
+        lbStreaming.balance(currentTime, logFile);
+        
+        lbProcessing.cycleStep();
+        lbStreaming.cycleStep();
 
         if (currentTime % 100 == 0) {
-            lb.adjustServers();
+            lbProcessing.adjustServers(logFile);
+            lbStreaming.adjustServers(logFile);
         }
 
         //logging every 1000 clock ticks to prevent too much logging
         if (currentTime % 1000 == 0) {
-            logFile << "Clock Cycle: " << currentTime << " | Queue Size: " << lb.queueSize() << "\n";
+            logFile << "Clock Cycle: " << currentTime 
+                    << " | P-Queue: " << lbProcessing.queueSize() 
+                    << " | S-Queue: " << lbStreaming.queueSize() << "\n";
         }
     }
+    int finalServersProcessing = lbProcessing.getServersCount();
+    int finalServersStreaming = lbStreaming.getServersCount();
+    int totalFinalServers = finalServersProcessing + finalServersStreaming;
+    
+    int totalRemainingQueue = lbProcessing.queueSize() + lbStreaming.queueSize();
+    int totalRejected = lbProcessing.getRejectedCount() + lbStreaming.getRejectedCount();
 
-    std::string summary = "\n=========================================================\n"
-                          "                   SIMULATION SUMMARY                    \n"
-                          "=========================================================\n"
-                          "Total Clock Cycles Run : " + std::to_string(runTime) + "\n"
-                          "Total Requests Received: " + std::to_string(totalRequestsReceived) + "\n"
-                          "Final Queue Size       : " + std::to_string(lb.queueSize()) + "\n"
-                          "=========================================================\n";
+    std::stringstream finalStats;
+    finalStats << "\n=========================================================\n"
+               << "                   FINAL SYSTEM STATUS                    \n"
+               << "=========================================================\n"
+               << "Ending Total Queue Size: " << totalRemainingQueue << "\n" 
+               << "   -> Processing Queue : " << lbProcessing.queueSize() << "\n"
+               << "   -> Streaming Queue  : " << lbStreaming.queueSize() << "\n"
+               << "Total Requests Received: " << totalRequestsReceived << "\n"
+               << "Requests Rejected (FW) : " << totalRejected << "\n" 
+               << "Total Servers at End   : " << totalFinalServers << "\n"
+               << "   -> Processing Nodes : " << finalServersProcessing << "\n"
+               << "   -> Streaming Nodes  : " << finalServersStreaming << "\n"
+               << "Total Clock Cycles     : " << runTime << "\n"
+               << "=========================================================\n";
 
-    std::cout << summary;
-    logFile << summary;
+    std::cout << finalStats.str();
+    logFile << finalStats.str();
 
     logFile.close();
     std::cout << "[SYSTEM] Simulation Complete. Output saved to log.txt.\n";

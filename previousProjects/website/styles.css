@@ -66,6 +66,19 @@ body.bg-5 { background: #89CFF0; }
   max-width: 560px;
 }
 
+.project-link {
+  color: #000;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+.project-link:hover,
+.project-link:focus-visible {
+  text-decoration: none;
+}
+
 
 .take {
   width: 100%;
@@ -87,6 +100,13 @@ body.bg-5 { background: #89CFF0; }
 .take-text {
   width: 100%;
   max-width: 720px;
+}
+
+.take-nav {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .take-title {
